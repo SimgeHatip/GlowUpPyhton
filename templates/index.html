@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Capture Image</title>
+</head>
+<body>
+<video id="video" width="640" height="480" autoplay></video>
+<button id="capture">Capture Image</button>
+<script>
+    const video = document.getElementById('video');
+    const captureButton = document.getElementById('capture');
+
+    // Get access to the camera
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function(stream) {
+                video.srcObject = stream;
+                video.play();
+            });
+    }
+
+    // Trigger photo take
+    captureButton.addEventListener('click', function() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 640;
+        canvas.height = 480;
+        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL('image/jpeg');
+
+        // Here you can send 'dataUrl' to the server using fetch or XMLHttpRequest
+        // Example:
+        <!-- Inside your HTML file's script tag -->
+        fetch('/classify', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ image: dataUrl })
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                alert('Skin condition classification: ' + data.classification);
+            });
+    });
+</script>
+</body>
+</html>
